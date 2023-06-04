@@ -53,6 +53,7 @@ def epsilon_greedy(action_qs, epsilon):
 def mcts(env, root, maxiter=500):
     """ TODO: Use this function as a starting point for implementing Monte Carlo Tree Search
     """
+    global all_treedepths
 
     if False:
         mcts_notree(env, root, maxiter)
@@ -60,6 +61,7 @@ def mcts(env, root, maxiter=500):
 
     # this is an example of how to add nodes to the root for all possible actions:
     root.children = [Node(root, a) for a in range(env.action_space.n)]
+    treedepths = []
 
     for _ in range(maxiter):
         state = copy.deepcopy(env)
@@ -67,11 +69,16 @@ def mcts(env, root, maxiter=500):
 
         # TODO: traverse the tree using an epsilon greedy tree policy
         node = root
-        while len(node.children) > 0:
+        terminal = False
+        iter_treedepth = 0
+        while len(node.children) > 0 and not terminal:
             values = [((c.sum_value/c.visits) if c.visits != 0 else 0) for c in node.children]  # calculate values for child actions
-            node = node.children[epsilon_greedy(values, 0.5)]
+            node = node.children[epsilon_greedy(values, 0.4)]
             _, reward, terminal, _ = state.step(node.action)
             G += reward
+            iter_treedepth += 1
+
+        treedepths.append(iter_treedepth)
 
         # TODO: Expansion of tree
         if not terminal:
@@ -88,8 +95,16 @@ def mcts(env, root, maxiter=500):
 
             node = node.parent
 
+    print(treedepths)
+    all_treedepths.append(max(treedepths))
+    print(max(treedepths))
+
+
+all_treedepths = []
+
 
 def main():
+    global all_treedepths
     env = gym.make("Taxi-v3")
     env.seed(0)  # use seed to make results better comparable
     # run the algorithm 10 times:
@@ -111,6 +126,10 @@ def main():
             sum_reward += reward
         rewards.append(sum_reward)
         print("finished run " + str(i+1) + " with reward: " + str(sum_reward))
+        plt.plot(range(len(all_treedepths)), all_treedepths, label=str(i))
+        all_treedepths = []
+    plt.legend()
+    plt.show()
     print("mean reward: ", np.mean(rewards))
     plot(range(len(rewards)), rewards)
 
