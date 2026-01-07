@@ -16,43 +16,53 @@ def random_episode(env):
         if done:
             break
 
+def float_to_interval_index(observation, x_intervals, vel_intervals):
+    for i, x in enumerate(x_intervals):
+        if i == 0:
+            continue
+        if observation[0] < x:
+            x_index = i
+            break
 
-def q_learning_with_state_aggregation(env, alpha=0.8, eps=0.1, num_eps=10000):
-    # Todo: Implement Q-learning by using state-aggregation (e.g., 20 intervals for x and 20 for ˙x). Plot the value function at regular intervals (e.g., every 20 episodes)
-    Q = np.zeros((20, 20, 3))
-    gamma = 0.99
+    for i, vel in enumerate(vel_intervals):
+        if i == 0:
+            continue
+        if observation[1] < vel:
+            vel_index = i
+            break
 
-    for i in range(num_eps):
-        state = env.reset()
+    return (x_index, vel_index)
+
+def qlearning(env, alpha=0.1, gamma=0.9, epsilon=0.1, num_ep=int(1e3)):
+    """ This is Q-Learning """
+
+    interval_size = 20
+    x_intervals = np.linspace(-1.2, 0.6, interval_size)
+    vel_intervals = np.linspace(-0.07, 0.07, interval_size)
+    Q = np.zeros((interval_size, interval_size, env.action_space.n))
+
+    for _ in range(num_ep):
+        observation = env.reset()
+        (obs_x, obs_vel) = float_to_interval_index(observation, x_intervals, vel_intervals)
+        done = False
         while not done:
-            if np.random.uniform(0, 1) < eps:
-                action = env.action_space.sample()
+            env.render()
+            if np.random.uniform(low=0.0, high=1.0) < epsilon:
+                a = np.random.randint(env.action_space.n)
             else:
-                action = np.argmax(Q[state, :])
-            observation, reward, done, info = env.step(action)
-            Q[state, action] = Q[state, action] + alpha * (reward + gamma * np.max(Q[observation, :]) - Q[state, action])
-            state = observation
-        if i % 20 == 0:
-            plot_value_function(Q, i)
+                a = np.argmax(Q[obs_x, obs_vel])
 
-    return Q
+            observation_, reward, done, _ = env.step(a)
+            (obs_x_, obs_vel_) = float_to_interval_index(observation_, x_intervals, vel_intervals)
+            Q[obs_x, obs_vel, a] += alpha * (reward + gamma * np.max(Q[obs_x_, obs_vel_]) - Q[obs_x, obs_vel, a])
 
-
-def plot_value_function(Q, i):
-    x = np.arange(-1.2, 0.6, 0.1)
-    y = np.arange(-0.07, 0.07, 0.01)
-
-    plt.plot(x, y)
-
-
-def plot(num_eps):
-
-
+            (obs_x, obs_vel) = (obs_x_, obs_vel_)
 
 def main():
     env = gym.make('MountainCar-v0')
-    # q_learning_with_state_aggregation(env=env, alpha=)
-    random_episode(env)
+    env.reset()
+    # random_episode(env)
+    qlearning(env)
     env.close()
 
 

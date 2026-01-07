@@ -108,7 +108,8 @@ def sarsa(env, alpha=0.1, gamma=0.9, epsilon=0.5, num_ep=int(1e4)):
             s, a = s_, a_
 
     # plot episode length
-    plot_episode_lengths(episode_lengths)
+    plt.plot(episode_lengths)
+    plt.show()
 
     return Q
 
@@ -132,28 +133,10 @@ def qlearning(env, alpha=0.1, gamma=0.9, epsilon=0.5, num_ep=int(1e4)):
             episode_lengths[i] += 1
 
     # plot episode length
-    plot_episode_lengths(episode_lengths)
-
-    return Q
-
-
-def plot_episode_lengths(episode_lengths):
-    x, y = generate_sliding_window_average(episode_lengths)
-
-    plt.plot(x, y, color='blue', linewidth=1.0, linestyle='-')
-    plt.xlabel("Episode")
-    plt.ylabel("Episode Length")
-    plt.title("Episode Length over Time")
+    plt.plot(episode_lengths)
     plt.show()
 
-
-def generate_sliding_window_average(episode_lengths):
-    window_size = 1000
-    y = np.zeros(len(episode_lengths) - window_size)
-    x = np.arange(len(y))
-    for i in range(len(y)):
-        y[i] = np.mean(episode_lengths[i:i + window_size])
-    return x, y
+    return Q
 
 
 if __name__ == "__main__":
