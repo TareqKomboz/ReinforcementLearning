@@ -1,2 +1,1 @@
-# ReinforcementLearning
-Reinforcement Learning Assignments, University of Stuttgart
+# ReinforcementLearning Assignments at the University of Stuttgart
